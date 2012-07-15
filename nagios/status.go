@@ -10,7 +10,7 @@ import (
 // Exit terminates the plugin with the given status and message text, adding
 // any performance data that was created.
 func Exit(status Status, msg string) {
-	fmt.Printf("%v: %s%s\n", status, msg, perfdata)
+	fmt.Printf("%v: %s%s\n", status, msg, globalPerfdata)
 	os.Exit(int(status))
 }
 

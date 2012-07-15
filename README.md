@@ -2,8 +2,7 @@ go-nagios
 =========
 go-nagios is a library for writing Nagios plugins in the Go programming
 language.  go-nagios is free software, licensed under the liberal ISC license.
-The API is currently liable to change, particularly with regards to performance
-data.
+The API is currently liable to change.
 
 Go has several properties that make it a particularly promising language for
 tasks like writing Nagios plugins. Its niche seems to be somewhere between C
@@ -22,7 +21,6 @@ locally with `godoc github.com/laziac/go-nagios`.
 
 TODO
 ----
-* figure out easier API for performance data
 * unit tests
 * example plugins
 

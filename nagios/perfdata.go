@@ -6,60 +6,60 @@ import (
 	"strings"
 )
 
-// A PerfData represents one data point to be graphed by third-party programs.
 // Unit may be one of:
 //	"" - none
 //	s, us, ms - seconds, microseconds, milliseconds
 //	% - percent
 //	B, kB, MB, GB, TB - bytes, kilobytes, megabytes, gigabytes, terabytes
 //	c - continuous counter
-type PerfData struct {
-	Label      string
-	Value      float64
-	Unit       string
-	Warn, Crit *Range
-	Min, Max   *float64
-}
 
-// perfdata tracks everything added by AddPerfData to be printed with Exit
-var perfdata string
+// perfdata tracks everything added by Perfdata to be printed with Exit
+var globalPerfdata string
 
-// BUG(me): AddPerfData doesn't check for newlines in label
+// Perfdata adds p to the global perfdata string to be printed with Exit
+func Perfdata(label string, v float64, unit string, warn, crit *Range,
+	extrema ...float64) error {
 
-// AddPerfData adds p to the global perfdata string to be printed with Exit
-func AddPerfData(p PerfData) error {
+	// check that extrema has no more than 2 values, and set min and max
+	// values from it
+	if len(extrema) > 2 {
+		return errors.New("too many arguments")
+	}
+
 	// check for valid unit of measure
-	switch strings.ToLower(p.Unit) {
+	switch strings.ToLower(unit) {
 	case "", "s", "us", "ms", "%", "b", "kb", "mb", "gb", "tb", "c":
 	default:
-		return errors.New("invalid unit of measure")
+		return errors.New("invalid unit of measure " + unit)
+	}
+
+	// check for (some) invalid characters in label
+	if strings.ContainsRune(label, '\n') {
+		return errors.New("label contains invalid characters")
 	}
 
 	// append a pipe or space character, depending on whether or not this
 	// is the first perfdata added
-	if len(perfdata) == 0 {
-		perfdata = "|"
+	if len(globalPerfdata) == 0 {
+		globalPerfdata = "|"
 	} else {
-		perfdata += " "
+		globalPerfdata += " "
 	}
 
 	// add label, value, unit of measure, and warning/critical ranges
-	perfdata += fmt.Sprintf("%s=%v%s;%v;%v", escapeLabel(p.Label),
-		p.Value, p.Unit, p.Warn, p.Crit)
+	globalPerfdata += fmt.Sprintf("%s=%v%s;%v;%v", escapeLabel(label), v,
+		unit, warn, crit)
 
 	// add min and max values if they are non-nil
 	// unnecessary if measured as a percentage
-	if p.Unit != "%" {
-		for _, v := range []*float64{p.Min, p.Max} {
-			perfdata += ";"
-			if v != nil {
-				perfdata += fmt.Sprintf("%v", *v)
-			}
+	if unit != "%" {
+		for _, v := range extrema {
+			globalPerfdata += fmt.Sprintf(";%v", v)
 		}
 	}
 
 	// remove trailing semicolons
-	perfdata = strings.TrimRight(perfdata, ";")
+	globalPerfdata = strings.TrimRight(globalPerfdata, ";")
 
 	return nil
 }
