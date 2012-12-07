@@ -3,14 +3,14 @@ package nagios
 import (
 	"fmt"
 	"os"
+	"strings"
 )
-
-// BUG(me): Exit doesn't check for newlines/pipes in msg
 
 // Exit terminates the plugin with the given status and message text, adding
 // any performance data that was created.
 func Exit(status Status, msg string) {
-	fmt.Printf("%v: %s%s\n", status, msg, globalPerfdata)
+	r := strings.NewReplacer("\n", "", "|", "", "\r", "")
+	fmt.Printf("%v: %s%s\n", status, r.Replace(msg), globalPerfdata)
 	os.Exit(int(status))
 }
 
